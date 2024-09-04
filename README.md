@@ -21,7 +21,7 @@ endpoint for ingestion of logs is
 
 function datahog($data, $title = "EMPTY TITLE", $type = "info", $domain = "", $subdomain = "")
 {
-    if($_SERVER['HTTP_HOST'] != "sanctuary.test")
+    if($_SERVER['HTTP_HOST'] != "somelocalsite.test")
     {
          return;
     }
