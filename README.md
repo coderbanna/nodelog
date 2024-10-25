@@ -50,3 +50,38 @@ function datahog($data, $title = "EMPTY TITLE", $type = "info", $domain = "", $s
 }
 
 ```
+
+``` javascript
+
+// javascript side func tion, add to wp_footer action
+
+<script type="text/javascript">
+    function datahog(data, title = "EMPTY TITLE", type = "info", domain = "", subdomain = "") {
+        const localUrl = 'http://localhost:8000/reporting/log/';
+
+        const data = {
+            title: title,
+            data: btoa(JSON.stringify(data)), // Using btoa to encode data as base64
+            type: type,
+            domain: domain,
+            subdomain: subdomain
+        };
+
+        fetch(localUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            // Handle response here
+            console.log('Response:', response);
+        })
+        .catch(error => {
+            // Handle error here
+            console.error('Error:', error);
+        });
+    }
+</script>
+```
