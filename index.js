@@ -3,6 +3,7 @@ var express = require("express")
 var app = express()
 var db = require("./database.js")
 var md5 = require("md5")
+const moment = require('moment');
 
 var bodyParser = require("body-parser");
 // Set a higher limit for bodyParser
@@ -21,7 +22,8 @@ app.listen(HTTP_PORT, () => {
 });
 // Root endpoint
 app.get("/", (req, res, next) => {
-    res.json({ "message": "Ok" })
+    let today = moment().format('YYYY-MM-DD'); 
+    res.render('main', { today });
 });
 
 // Insert here other API endpoints

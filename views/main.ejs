@@ -1,0 +1,67 @@
+<!-- logs.ejs -->
+<%- include('./partials/header'); %>
+
+<%- include('./partials/navbar'); %>
+
+<section class="section">
+    <div class="container">
+        <h1 class="title">
+            Addiction Calender
+            
+        </h1>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody id="calendar-body"></tbody>
+        </table>
+    
+    </div>
+</section>
+
+
+<script type="text/javascript">
+    const todayDate = "<%= today %>"; // Pass today's date from server
+    const today = new Date(todayDate);
+    const month = today.getMonth();
+    const year = today.getFullYear();
+
+    function generateCalendar(year, month) {
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let calendarHTML = "";
+        let date = 1;
+
+        for (let i = 0; i < 6; i++) { // Max 6 rows
+            let row = "<tr>";
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < firstDay) {
+                    row += "<td></td>";
+                } else if (date > daysInMonth) {
+                    break;
+                } else {
+                    let className = (date === today.getDate()) ? "is-success" : "";
+                    row += `<td class="${className}">${date}</td>`;
+                    date++;
+                }
+            }
+            row += "</tr>";
+            calendarHTML += row;
+            if (date > daysInMonth) break;
+        }
+        document.getElementById("calendar-body").innerHTML = calendarHTML;
+    }
+
+    generateCalendar(year, month);
+</script>
+
+<%- include('./partials/footer'); %>
