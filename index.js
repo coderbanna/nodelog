@@ -22,13 +22,6 @@ app.listen(HTTP_PORT, () => {
 });
 // Root endpoint
 app.get("/", (req, res, next) => {
-    let today = moment().format('YYYY-MM-DD'); 
-    res.render('main', { today });
-});
-
-// Insert here other API endpoints
-
-app.get("/logs", (req, res, next) => {
     var sql = "select * from logs ORDER by id DESC"
     var params = []
     db.all(sql, params, (err, rows) => {
@@ -47,6 +40,8 @@ app.get("/logs", (req, res, next) => {
         res.render('logs', { data: final });
     });
 });
+
+// Insert here other API endpoints
 
 app.get("/log/:id", (req, res, next) => {
     var sql = "select * from logs where log_hash = ?"
@@ -73,16 +68,6 @@ app.post("/reporting/log/", (req, res, next) => {
     var subdomain = req.body.subdomain;
 
     var log_hash = md5(logmsg);
-    // if (!req.body.password){
-    //     errors.push("No password specified");
-    // }
-    // if (!req.body.email){
-    //     errors.push("No email specified");
-    // }
-    // if (errors.length){
-    //     res.status(400).json({"error":errors.join(",")});
-    //     return;
-    // }
 
     var sql ='INSERT INTO logs (logmsg, title, domain, subdomain, log_hash) VALUES (?,?,?,?,?)'
     var params =[logmsg, title, domain, subdomain, log_hash]
