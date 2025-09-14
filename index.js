@@ -15,14 +15,16 @@ app.use('/', express.static('public'));
 app.set('view engine', 'ejs');
 
 // Server port
-var HTTP_PORT = 8000
+var HTTP_PORT = 5055
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%", HTTP_PORT))
 });
+
+
 // Root endpoint
 app.get("/", (req, res, next) => {
-    var sql = "select * from logs ORDER by id DESC"
+    var sql = "select * from logs ORDER by id DESC LIMIT 10"
     var params = []
     db.all(sql, params, (err, rows) => {
         if (err) {
@@ -69,8 +71,8 @@ app.post("/reporting/log/", (req, res, next) => {
 
     var log_hash = md5(logmsg);
 
-    var sql ='INSERT INTO logs (logmsg, title, domain, subdomain, log_hash) VALUES (?,?,?,?,?)'
-    var params =[logmsg, title, domain, subdomain, log_hash]
+    var sql ='INSERT INTO logs (logmsg, log_type, title, domain, subdomain, log_hash) VALUES (?, ?, ?,?,?,?)'
+    var params =[logmsg, type, title, domain, subdomain, log_hash]
     db.run(sql, params, function (err, result) {
         if (err){
             console.log(err.message);
@@ -84,6 +86,10 @@ app.post("/reporting/log/", (req, res, next) => {
                 "data": []
             })
 })
+
+app.get("/test", (req, res, next) => {
+    res.render('main', { });
+});
 
 // Default response for any other request
 app.use(function (req, res) {

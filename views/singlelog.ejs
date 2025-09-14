@@ -1,28 +1,36 @@
-<!-- logs.ejs -->
 <%- include('./partials/header'); %>
 
-<%- include('./partials/navbar'); %>
-
-<section class="section">
-    <div class="container">
-        <h1 class="title">
-            Log Detail
-        </h1>
-
-        <div class="box">
-            <%= data.title %>
+<div class="tui-screen-fluid bordered white-168">
+    <div class="tui-panel cyan-168 full-width black-255-text tui-no-shadow center">
+        NODELOG - BIOS
+    </div>
+    <div class="tui-tabs">
+        <ul>
+            <li><a class="tui-tab active" data-tab-content="tab-1-content">Logs</a></li>
+            <li><a class="tui-tab" data-tab-content="tab-2-content">Help</a></li>
+        </ul>
+    </div>
+    <div class="tui-tab-content tui-content" id="tab-1-content">
+      
+      <!-- Turbo C++ Style Editor -->
+       <fieldset class="tui-fieldset">
+          <legend><%= data.title %></legend>
+          <button class="tui-button" onclick="location.href='/'">Go Back</button> 
+        <div class="tui-divider" style="margin-top: 10px; margin-bottom: 10px;"></div> <!-- Default -->
+        <div id="editorWindow">
+          <div id="editorContent">
+            <code><pre><%= data.logmsg %></pre></code>
+          </div>
         </div>
-        <div class="box">
-            <pre>
-                <code>
-                    <%= data.logmsg %>
-                </code>
-            </pre>
-        </div>
-
+        
+      </fieldset>
+            
 
     </div>
-</section>
-
+    <div class="tui-tab-content tui-content" id="tab-2-content">
+    </div>
+    <%- include('./partials/footernav'); %>
+    
+</div>
 
 <%- include('./partials/footer'); %>

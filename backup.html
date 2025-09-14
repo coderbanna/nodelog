@@ -1,0 +1,29 @@
+<li onclick="open_log('<%= item.log_hash %>')"
+                        class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b dark:border-gray-700">
+                        <div class="flex justify-between items-center">
+                            <!-- Type Badge -->
+                            <% if (item.log_type==='info' ) { %>
+                                <span class="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm">Info</span>
+                                <% } else if (item.log_type==='warn' ) { %>
+                                    <span
+                                        class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">Warning</span>
+                                    <% } else if (item.log_type==='error' ) { %>
+                                        <span
+                                            class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">Error</span>
+                                        <% } else if (item.log_type==='success' ) { %>
+                                            <span
+                                                class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">Success</span>
+                                            <% } else { %>
+                                                <span
+                                                    class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm">Unknown</span>
+                                                <% } %>
+
+                                                    <!-- Title and ID -->
+                                                    <span class="truncate max-w-[200px] ml-2 text-sm">
+                                                        <%= item.title %>
+                                                    </span>
+                                                    <span class="text-sm text-gray-400">
+                                                        <%= item.id %>
+                                                    </span>
+                        </div>
+                    </li>

@@ -1,44 +1,472 @@
 <!-- logs.ejs -->
 <%- include('./partials/header'); %>
 
-<%- include('./partials/navbar'); %>
-
-<section class="section">
-    <div class="container">
-        <h1 class="title">
-            All Logs
-        </h1>
-
-            <table class="table is-primary">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Msg</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% data.forEach((item)=>{ %>
-                        <tr>
-                            <th scope="row">
-                                <%= item.id %>
-                            </th>
-                            <td>
-                                <%= item.title %>
-                            </td>
-                            <td>
-                                <%= item.logmsg %>...
-                            </td>
-                            <td>
-                                <a href="/log/<%= item.log_hash %>" target="_blank">Open</a>
-                            </td>
-                            
-                        </tr>
-                    <% }); %>
-                </tbody>
-            </table>
+<!-- Boot Screen -->
+<div id="bootScreen" class="tui-window">
+    <div class="tui-title-bar">PhoenixBIOS 4.0 Release 6.0</div>
+    <div class="tui-window-content">
+        <div class="boot-log" id="bootLog"></div>
+        <div class="tui-progress-bar" style="margin-top: 1rem;">
+            <span id="progressText">0%</span>
+            <div class="tui-progress" id="progressBar" style="width:0%"></div>
+        </div>
+        <div><span class="cursor"></span></div>
     </div>
-</section>
+</div>
+
+
+<div class="tui-screen-fluid bordered white-168" style="display: none;" id="mainApp">
+    <div class="tui-panel cyan-168 full-width black-255-text tui-no-shadow center">
+        NODELOG - BIOS
+    </div>
+    <div class="tui-tabs">
+        <ul>
+            <li><a class="tui-tab active" data-tab-content="tab-1-content">Logs</a></li>
+            <li><a class="tui-tab" data-tab-content="tab-2-content">Help</a></li>
+        </ul>
+    </div>
+    <div class="tui-tab-content tui-content" id="tab-1-content">                    
+        <div class="tui-divider" style="margin-top: 10px; margin-bottom: 10px;"></div> <!-- Default -->
+        <table class="tui-table-grid">
+            <tbody>
+
+                <% data.forEach((item)=> { %>
+                    <tr>
+                        <td rowspan="1" class="blue-168-text" style="min-width: 160px;">
+                            <% if (item.log_type==='error' ) { %>
+                                <button class="tui-button red-168 white-text disabled" disabled>❌ Error</button>
+                            <% } else if (item.log_type==='warn' ) { %>
+                                <button class="tui-button yellow-168 black-text disabled" disabled>⚠️ Warn</button>
+                            <% } else if (item.log_type==='info' ) { %>
+                                <button class="tui-button cyan-168 black-text disabled" disabled>ℹ️ Info</button>
+                            <% } else if (item.log_type==='debug' ) { %>
+                                <button class="tui-button purple-168 white-text disabled" disabled>🐞 Debug</button>
+                            <% } else { %>
+                                <button class="tui-button red-168 white-text disabled" disabled>ℹ️ Info</button>
+                            <% } %>
+                        </td>
+                        <td rowspan="1" class="blue-168-text" style="min-width: 300px;">
+                            <a href="/log/<%- item.log_hash %>/">
+                                <%= item.title %>
+                            </a>
+                        </td>
+                        <td>
+                            <!-- Log Message -->
+                            <div class="log-msg"><%- item.logmsg %></div>
+
+                            <!-- Pills below -->
+                            <div class="log-tags">
+                                <span class="log-pill">🌐 <%- item.domain %></span>
+                                <span class="log-pill">🏷️ <%- item.subdomain %></span>
+                            </div>
+
+                        </td>
+                    </tr>
+                    <% }); %>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="tui-tab-content tui-content" id="tab-2-content">
+
+        <fieldset class="tui-fieldset">
+          <legend>PHP Handler</legend>
+        <div id="editorWindow">
+          <div id="editorContent">
+            <code><pre>
+if (!class_exists('DataHog')) {
+    
+    class DataHog
+    {
+        protected static $endpoint = 'http://vigil:5055/reporting/log/';
+        protected static $defaultType = 'info';
+        protected static $defaultDomain = '';
+        protected static $defaultSubdomain = '';
+        protected static $enabled = true;
+
+
+        /**
+         * Optionally configure endpoint and defaults
+         */
+        public static function configure($endpoint, $defaultType = 'info', $defaultDomain = '', $defaultSubdomain = '')
+        {
+            self::$endpoint = $endpoint;
+            self::$defaultType = $defaultType;
+            self::$defaultDomain = $defaultDomain;
+            self::$defaultSubdomain = $defaultSubdomain;
+        }
+
+        public static function enable($status = true) {
+            self::$enabled = $status;
+        }
+
+
+        /**
+         * Log to DataHog endpoint
+         */
+        public static function log($data, $title = 'EMPTY TITLE', $type = null, $domain = null, $subdomain = null)
+        {
+            if (!self::$enabled) return null;
+
+            // --- New logic for title handling ---
+            if ($title === 'EMPTY TITLE') {
+                if (is_string($data)) {
+                    // If data is a simple string → use it as title
+                    $title = $data;
+                } else {
+                    // Otherwise use data type (array, object, etc.)
+                    $title = strtoupper(gettype($data));
+                }
+            }
+
+            $payload = [
+                'title'     => $title,
+                'data'      => base64_encode(print_r($data, true)),
+                'type'      => $type ?? self::$defaultType,
+                'domain'    => $domain ?? self::$defaultDomain,
+                'subdomain' => $subdomain ?? self::$defaultSubdomain,
+            ];
+
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $caller = $trace[1] ?? [];
+            $payload['context'] = [
+                'file'     => $caller['file'] ?? null,
+                'line'     => $caller['line'] ?? null,
+                'function' => $caller['function'] ?? null,
+            ];
+
+            $jsonData = json_encode($payload);
+
+            // --- If WordPress is loaded, use wp_remote_post ---
+            if (function_exists('wp_remote_post')) {
+                $args = [
+                    'body'    => $jsonData,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                    'timeout' => 5,
+                ];
+
+                $response = wp_remote_post(self::$endpoint, $args);
+
+                if (is_wp_error($response)) {
+                    error_log("DataHog error: " . $response->get_error_message());
+                }
+
+                return $response;
+            }
+
+            // --- Otherwise, fallback to plain PHP + cURL ---
+            $ch = curl_init(self::$endpoint);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+            $result = curl_exec($ch);
+
+            if ($result === false) {
+                error_log("DataHog cURL error: " . curl_error($ch));
+            }
+
+            curl_close($ch);
+
+            return $result;
+
+
+        }
+
+        /**
+         * Quick multi-logger for batching multiple arguments
+         *
+         * Usage:
+         *   DataHog::logMulti('My Title', $var1, $var2, 'something else');
+         */
+        public static function logMulti($title, ...$items)
+        {
+            // if no extra args, treat like normal log
+            $data = count($items) === 1 ? $items[0] : $items;
+
+            return self::log($data, $title);
+        }
+
+        public static function info($data, $title = 'EMPTY TITLE') {
+            return self::log($data, $title, 'info');
+        }
+
+        public static function debug($data, $title = 'EMPTY TITLE') {
+            return self::log($data, $title, 'debug');
+        }
+
+        public static function error($data, $title = 'EMPTY TITLE') {
+            return self::log($data, $title, 'error');
+        }
+
+    }
+}
+
+//DataHog::enable(false); // turn off logs
+
+
+            </pre></code>
+          </div>
+        </div>
+        
+      </fieldset>
+
+
+
+
+
+      <fieldset class="tui-fieldset">
+          <legend>Javascript</legend>
+        <div id="editorWindow">
+          <div id="editorContent">
+            <code><pre>
+
+class DataHog {
+    static endpoint = "http://vigil:5055/reporting/log/";
+    static defaultType = "info";
+    static defaultDomain = "";
+    static defaultSubdomain = "";
+    static enabled = true;
+
+    static configure(endpoint, defaultType = "info", defaultDomain = "", defaultSubdomain = "") {
+        this.endpoint = endpoint;
+        this.defaultType = defaultType;
+        this.defaultDomain = defaultDomain;
+        this.defaultSubdomain = defaultSubdomain;
+    }
+
+    static enable(status = true) {
+        this.enabled = status;
+    }
+
+    static async log(data, title = "EMPTY TITLE", type = null, domain = null, subdomain = null) {
+        if (!this.enabled) return null;
+
+        // Auto-title handling
+        if (title === "EMPTY TITLE") {
+            if (typeof data === "string") {
+                title = data;
+            } else {
+                title = (data === null) ? "NULL" : data.constructor?.name?.toUpperCase() || typeof data;
+            }
+        }
+
+        // Context (best effort, Node only)
+        const err = new Error();
+        const stack = err.stack?.split("\n")[3]?.trim();
+        const context = { caller: stack || null };
+
+        const payload = {
+            title,
+            data: Buffer.from(typeof data === "string" ? data : JSON.stringify(data, null, 2)).toString("base64"),
+            type: type || this.defaultType,
+            domain: domain || this.defaultDomain,
+            subdomain: subdomain || this.defaultSubdomain,
+            context
+        };
+
+        try {
+            const res = await fetch(this.endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            return await res.text();
+        } catch (err) {
+            console.error("DataHog error:", err.message);
+            return null;
+        }
+    }
+
+    static logMulti(title, ...items) {
+        const data = items.length === 1 ? items[0] : items;
+        return this.log(data, title);
+    }
+
+    static info(data, title = "EMPTY TITLE") { return this.log(data, title, "info"); }
+    static debug(data, title = "EMPTY TITLE") { return this.log(data, title, "debug"); }
+    static error(data, title = "EMPTY TITLE") { return this.log(data, title, "error"); }
+}
+
+// Example
+// DataHog.debug({ foo: "bar" });
+
+
+            </pre></code>
+          </div>
+        </div>
+        
+      </fieldset>
+
+
+
+      <fieldset class="tui-fieldset">
+          <legend>Python</legend>
+        <div id="editorWindow">
+          <div id="editorContent">
+            <code><pre>
+
+import base64
+import json
+import inspect
+import requests
+
+class DataHog:
+    endpoint = "http://vigil:5055/reporting/log/"
+    default_type = "info"
+    default_domain = ""
+    default_subdomain = ""
+    enabled = True
+
+    @classmethod
+    def configure(cls, endpoint, default_type="info", default_domain="", default_subdomain=""):
+        cls.endpoint = endpoint
+        cls.default_type = default_type
+        cls.default_domain = default_domain
+        cls.default_subdomain = default_subdomain
+
+    @classmethod
+    def enable(cls, status=True):
+        cls.enabled = status
+
+    @classmethod
+    def log(cls, data, title="EMPTY TITLE", log_type=None, domain=None, subdomain=None):
+        if not cls.enabled:
+            return None
+
+        # Auto-title handling
+        if title == "EMPTY TITLE":
+            if isinstance(data, str):
+                title = data
+            else:
+                title = type(data).__name__.upper()
+
+        # Capture context
+        frame = inspect.stack()[1]
+        context = {
+            "file": frame.filename,
+            "line": frame.lineno,
+            "function": frame.function,
+        }
+
+        if isinstance(data, str):
+            encoded = base64.b64encode(data.encode()).decode()
+        else:
+            encoded = base64.b64encode(json.dumps(data, default=str, indent=2).encode()).decode()
+
+        payload = {
+            "title": title,
+            "data": encoded,
+            "type": log_type or cls.default_type,
+            "domain": domain or cls.default_domain,
+            "subdomain": subdomain or cls.default_subdomain,
+            "context": context,
+        }
+
+        try:
+            res = requests.post(cls.endpoint, json=payload, timeout=5)
+            return res.text
+        except Exception as e:
+            print(f"DataHog error: {e}")
+            return None
+
+    @classmethod
+    def log_multi(cls, title, *items):
+        data = items[0] if len(items) == 1 else list(items)
+        return cls.log(data, title)
+
+    @classmethod
+    def info(cls, data, title="EMPTY TITLE"): return cls.log(data, title, "info")
+    @classmethod
+    def debug(cls, data, title="EMPTY TITLE"): return cls.log(data, title, "debug")
+    @classmethod
+    def error(cls, data, title="EMPTY TITLE"): return cls.log(data, title, "error")
+
+
+# Example:
+# DataHog.error({"foo": "bar"})
+# DataHog.log_multi("Quick Debug", {"a":1}, [2,3], "string test")
+
+
+            </pre></code>
+          </div>
+        </div>
+        
+      </fieldset>
+
+
+
+
+    </div>
+    <%- include('./partials/footernav'); %>
+    
+</div>
+
+
+<script>
+    const bootLog = document.getElementById("bootLog");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+
+    // Fake BIOS boot messages
+    const bootMessages = [
+        "Performing memory test .................. OK",
+        "Detecting IDE drives .................... OK",
+        "Initializing keyboard ................... OK",
+        "Loading device drivers .................. OK",
+        "Checking network adapter ................ OK",
+        "Booting operating system ................"
+    ];
+
+    let currentMessage = 0;
+    let charIndex = 0;
+    let progress = 0;
+
+    function typeLine() {
+        if (currentMessage < bootMessages.length) {
+            const msg = bootMessages[currentMessage];
+            if (charIndex < msg.length) {
+                bootLog.textContent += msg[charIndex];
+                charIndex++;
+                setTimeout(typeLine, 30); // typing speed
+            } else {
+                bootLog.textContent += "\n";
+                charIndex = 0;
+                currentMessage++;
+                setTimeout(typeLine, 200);
+            }
+        } else {
+            // When all messages are typed, start progress
+            updateProgress();
+        }
+    }
+
+    function updateProgress() {
+        progress += Math.floor(Math.random() * 10) + 5;
+        if (progress > 100) progress = 100;
+
+        progressBar.style.width = progress + "%";
+        progressText.textContent = progress + "%";
+
+        if (progress < 100) {
+            setTimeout(updateProgress, 300);
+        } else {
+            setTimeout(() => {
+                document.getElementById("bootScreen").style.display = "none";
+                document.getElementById("mainApp").style.display = "block";
+            }, 800);
+        }
+    }
+
+    // Start typing after a short delay
+    //setTimeout(typeLine, 500);
+
+    document.getElementById("bootScreen").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+</script>
 
 <%- include('./partials/footer'); %>

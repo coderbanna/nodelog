@@ -85,3 +85,9 @@ function datahog($data, $title = "EMPTY TITLE", $type = "info", $domain = "", $s
     }
 </script>
 ```
+
+
+# how to build its image
+
+$ docker build -t coderbanna/nodelog:latest .
+$ docker push coderbanna/nodelog:latest

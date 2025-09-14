@@ -13,6 +13,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         db.run(`CREATE TABLE logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             logmsg text, 
+            log_type text,
             title text, 
             domain text, 
             subdomain text,

@@ -1,14 +1,95 @@
 
-<!doctype html>
-<html lang="en" class="theme-light">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>NodeLog</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
-</head>
+    <meta charset="UTF-8">
+    <title>NodeLog - BIOS</title>
 
-<body>
-    
+    <%- include('../tuicss/tui'); %>
+    <%- include('../tuicss/tuijs'); %>
+
+    <style>
+        #bootScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: black;
+            color: lime;
+            z-index: 9999;
+            padding: 1rem;
+            overflow: hidden;
+        }
+
+        .boot-log {
+            white-space: pre-wrap;
+            line-height: 1.4;
+            min-height: 250px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            background: lime;
+            margin-left: 3px;
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                background: transparent;
+            }
+        }
+
+
+        #editorWindow {
+            background: navy;
+            color: white;
+            font-family: monospace;
+        }
+
+        #editorContent {
+            padding: 1rem;
+            height: 100%;
+            overflow: auto;
+        }
+
+        pre,
+        code {
+            background: transparent !important;
+            color: white !important;
+            font-size: 16px;
+            white-space: pre-wrap;   /* preserve newlines, wrap long lines */
+            word-break: break-word;  /* break long words if needed */
+        }
+
+        /* Log message styling */
+        .log-msg {
+            
+            white-space: pre-wrap;
+            margin-bottom: 4px;
+        }
+
+        /* Container for pills */
+        .log-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Small pill-style tags */
+        .log-pill {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-family: monospace;
+            background: #000; /* dark green background like BIOS theme */
+            color: #ffffff;      /* bright DOS green text */
+            border-radius: 4px;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body class="white-168">

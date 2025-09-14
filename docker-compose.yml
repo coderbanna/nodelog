@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  nodelog:
+    build: .
+    container_name: nodelog_app
+    ports:
+      - "5055:5055"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm start
